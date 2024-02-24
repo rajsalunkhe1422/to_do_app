@@ -20,7 +20,7 @@ class Task {
       'title': title,
       'description': description,
       'imageUrl': imageUrl,
-      'date': date?.millisecondsSinceEpoch, // Convert date to milliseconds
+      'date': date?.day, // Convert date to milliseconds
     };
   }
 

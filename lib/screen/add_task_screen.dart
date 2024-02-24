@@ -89,6 +89,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               onPressed: () => _selectDate(context), // Call _selectDate function
               child: Text('Select Date'),
             ),
+
             _selectedDate != null
                 ? Text(
               'Selected Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',

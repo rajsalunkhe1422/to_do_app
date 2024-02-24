@@ -104,7 +104,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               width: 100,
               fit: BoxFit.cover,
             )
-                : SizedBox.shrink(),
+                : Text('ERROR'),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {

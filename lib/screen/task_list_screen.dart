@@ -16,7 +16,6 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
-  DateTime? _selectedDate;
 
   @override
   Widget build(BuildContext context) {
@@ -36,17 +35,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final DateTime? selectedDate = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => AddTaskScreen(bloc: widget.bloc),
             ),
           );
-          if (selectedDate != null) {
-            setState(() {
-              _selectedDate = selectedDate;
-            });
-          }
         },
         child: Icon(Icons.add),
       ),
@@ -79,10 +73,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
             children: [
               Text(task.description),
               SizedBox(height: 5),
-              Text(
-                _selectedDate != null
-                    ? 'Date: ${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year}'
-                    : 'No date',
+              Text('Date: ${task.date}' ?? 'null',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],

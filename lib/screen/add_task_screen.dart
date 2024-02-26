@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:to_do_app/local/hive_storage_repo.dart';
 import 'package:to_do_app/model/task_model.dart';
 import 'package:to_do_app/screen/task_bloc.dart';
 import 'dart:io';
@@ -18,11 +20,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   late TextEditingController _descriptionController;
   File? _image;
   DateTime? _selectedDate;
+  late Box _todoBox;
+
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
     _descriptionController = TextEditingController();
+    _openBox();
+  }
+
+  Future<void> _openBox() async {
+    try {
+      await Hive.initFlutter();
+      _todoBox = await Hive.openBox(HiveStorageRepo.taskListKey);
+    } catch (e) {
+      print('Error opening box: $e');
+    }
   }
 
   Future<void> _getImage(ImageSource source) async {
@@ -54,76 +68,109 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Task'),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 70),
+          child: Text(
+            'Add Task',
+            style: TextStyle(fontSize: Checkbox.width),
+          ),
+        ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      backgroundColor: Colors.blueGrey[50], // Background color added here
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
+            TextFormField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
             ),
-            TextField(
+            const SizedBox(height: 20),
+            TextFormField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => _getImage(ImageSource.gallery),
-                  child: Text('Choose from Gallery'),
+                  icon: const Icon(Icons.photo),
+                  label: const Text('Gallery'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 24),
+                  ),
                 ),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () => _getImage(ImageSource.camera),
-                  child: Text('Take a Picture'),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Camera'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 24),
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => _selectDate(context), // Call _selectDate function
-              child: Text('Select Date'),
+              onPressed: () => _selectDate(context),
+              child: const Center(child: Text('Select Date')),
             ),
-
+            const SizedBox(height: 10),
             _selectedDate != null
                 ? Text(
-              'Selected Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-              style: TextStyle(fontSize: 16),
-            )
-                : SizedBox.shrink(),
-            SizedBox(height: 20),
+                    'Selected Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                    style: const TextStyle(fontSize: 16),
+                  )
+                : const SizedBox.shrink(),
+            const SizedBox(height: 20),
             _image != null
                 ? Image.file(
-              _image!,
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-            )
-                : Text('ERROR'),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Task newTask = Task(
-                  id: '', // Assign a unique ID
-                  title: _titleController.text,
-                  description: _descriptionController.text,
-                  imageUrl: _image != null ? _image!.path : '', // Add image path
-                  date: _selectedDate!, // Add selected date
-                );
-                widget.bloc.addTask(newTask);
-                // Navigator.pop(context, _selectedDate);
+                    _image!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
+                : const SizedBox.shrink(),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 100, left: 110),
+              child: ElevatedButton(
+                onPressed: () async {
+                  Task newTask = Task(
+                    id: '',
+                    // Assign a unique ID
+                    title: _titleController.text,
+                    description: _descriptionController.text,
+                    imageUrl: _image != null ? _image!.path : '',
+                    // Add image path
+                    date: _selectedDate!, // Add selected date
+                  );
 
-                Navigator.pop(context, {
-                  'date': _selectedDate,
-                  'imageFile': _image,
-                });
-              },
+                  try {
+                    // Save the new task to Hive
+                    await _todoBox.add(newTask.toMap());
+                    print('Task added to Hive: $newTask');
+                  } catch (e) {
+                    print('Error adding task to box: $e');
+                  }
 
-              child: Text('Add Task'),
+                  widget.bloc.addTask(newTask);
+                  Navigator.pop(context);
+                },
+                child: const Text('Add Task'),
+              ),
             ),
           ],
         ),

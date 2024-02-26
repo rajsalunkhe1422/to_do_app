@@ -1,61 +1,53 @@
-// task_list_screen.dart
-
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:to_do_app/model/task_model.dart';
 import 'package:to_do_app/screen/task_bloc.dart';
 import 'package:to_do_app/screen/task_details_screen.dart';
-import 'package:to_do_app/screen/add_task_screen.dart';
-import 'package:intl/intl.dart';
 
-
-class TaskListScreen extends StatefulWidget {
+class TodaysTaskListScreen extends StatefulWidget {
   final TaskBloc bloc;
 
-  TaskListScreen({required this.bloc});
+  // Add the Key? parameter and pass it to the super constructor
+  TodaysTaskListScreen({required this.bloc, Key? key}) : super(key: key);
 
   @override
-  _TaskListScreenState createState() => _TaskListScreenState();
+  _TodaysTaskListScreenState createState() => _TodaysTaskListScreenState();
 }
 
-class _TaskListScreenState extends State<TaskListScreen> {
+class _TodaysTaskListScreenState extends State<TodaysTaskListScreen> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Task List'),
+
       ),
       body: StreamBuilder<List<Task>>(
         stream: widget.bloc.tasksStream,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return _buildTaskList(snapshot.data!);
+            return _buildTodaysTaskList(snapshot.data!);
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: Text('Empty List'));
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddTaskScreen(bloc: widget.bloc),
-            ),
-          );
-        },
-        child: Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildTaskList(List<Task> tasks) {
+  Widget _buildTodaysTaskList(List<Task> tasks) {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+
+    List<Task> tasksForToday = tasks.where((task) {
+      return task.date!.year == today.year &&
+          task.date!.month == today.month &&
+          task.date!.day == today.day;
+    }).toList();
     return ListView.builder(
-      itemCount: tasks.length,
+      itemCount: tasksForToday.length,
       itemBuilder: (context, index) {
-        Task task = tasks[index];
+        Task task = tasksForToday[index];
         return ListTile(
           leading: Container(
             width: 50,
@@ -80,8 +72,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(task.description),
-              SizedBox(height: 5),
-              Text('${task.date.toString()}'),
+              const SizedBox(height: 5),
+              Text(task.date.toString()),
             ],
           ),
           onTap: () {

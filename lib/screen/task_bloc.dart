@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:to_do_app/model/task_model.dart';
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:to_do_app/model/task_model.dart';
+
 class TaskBloc {
-  final _taskController = StreamController<List<Task>>();
+  final _taskController = StreamController<List<Task>>.broadcast();
   Stream<List<Task>> get tasksStream => _taskController.stream;
 
   final CollectionReference _tasksCollection = FirebaseFirestore.instance.collection('tasks');
@@ -12,25 +13,21 @@ class TaskBloc {
     _tasksCollection.snapshots().listen((snapshot) {
       List<Task> tasks = [];
       for (var doc in snapshot.docs) {
-        // Check the type of 'date' and convert accordingly
         DateTime date;
         var dateField = doc['date'];
         if (dateField is Timestamp) {
-          // If 'date' is a Timestamp, convert to DateTime
           date = dateField.toDate();
         } else if (dateField is int) {
-          // If 'date' is an integer (milliseconds since epoch), convert to DateTime
           date = DateTime.fromMillisecondsSinceEpoch(dateField);
         } else {
-          // Default or error handling case, set a default date or handle as needed
-          date = DateTime.now(); // Or throw an error, depending on your requirements
+          date = DateTime.now();
         }
         tasks.add(Task(
           id: doc.id,
           title: doc['title'],
           description: doc['description'],
           imageUrl: doc['imageUrl'],
-          date: date, // Allow null dates
+          date: date,
         ));
       }
       _taskController.add(tasks);

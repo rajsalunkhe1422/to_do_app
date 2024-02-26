@@ -1,10 +1,14 @@
 // task_list_screen.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:to_do_app/model/task_model.dart';
 import 'package:to_do_app/screen/task_bloc.dart';
 import 'package:to_do_app/screen/task_details_screen.dart';
 import 'package:to_do_app/screen/add_task_screen.dart';
+import 'package:intl/intl.dart';
+
 
 class TaskListScreen extends StatefulWidget {
   final TaskBloc bloc;
@@ -58,13 +62,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              image: DecorationImage(
+              image: task.imageUrl.isNotEmpty && task.imageUrl.startsWith('http')
+                  ? DecorationImage(
                 fit: BoxFit.cover,
-                image: task.imageUrl.isNotEmpty
-                    ? NetworkImage(task.imageUrl) as ImageProvider<Object>
-                    : AssetImage('assets/default_image.png')
-                as ImageProvider<Object>,
-              ),
+                image: NetworkImage(task.imageUrl),
+              )
+                  : task.imageUrl.isNotEmpty && File(task.imageUrl).existsSync()
+                  ? DecorationImage(
+                fit: BoxFit.cover,
+                image: FileImage(File(task.imageUrl)),
+              )
+                  : null,
             ),
           ),
           title: Text(task.title),
@@ -73,9 +81,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
             children: [
               Text(task.description),
               SizedBox(height: 5),
-              Text('Date: ${task.date}' ?? 'null',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
+              Text('${task.date.toString()}'),
             ],
           ),
           onTap: () {

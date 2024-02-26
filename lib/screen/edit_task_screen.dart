@@ -26,22 +26,22 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Task'),
+        title: const Text('Edit Task'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
+              decoration: const InputDecoration(labelText: 'Title'),
             ),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(labelText: 'Description'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Task updatedTask = Task(
@@ -49,11 +49,12 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
                   title: _titleController.text,
                   description: _descriptionController.text,
                   imageUrl: widget.task.imageUrl,
+                  date: widget.task.date
                 );
                 widget.bloc.updateTask(updatedTask);
                 Navigator.pop(context, updatedTask); // Return updated task
               },
-              child: Text('Save Changes'),
+              child: const Text('Save Changes'),
             ),
 
           ],

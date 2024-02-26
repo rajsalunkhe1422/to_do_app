@@ -17,8 +17,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
   File? _image;
-  DateTime? _selectedDate; // Add this line
-
+  DateTime? _selectedDate;
   @override
   void initState() {
     super.initState();
@@ -113,10 +112,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   title: _titleController.text,
                   description: _descriptionController.text,
                   imageUrl: _image != null ? _image!.path : '', // Add image path
-                  date: _selectedDate, // Add selected date
+                  date: _selectedDate!, // Add selected date
                 );
                 widget.bloc.addTask(newTask);
-                Navigator.pop(context, _selectedDate); // Pass selected date
+                // Navigator.pop(context, _selectedDate);
+
+                Navigator.pop(context, {
+                  'date': _selectedDate,
+                  'imageFile': _image,
+                });
               },
 
               child: Text('Add Task'),
